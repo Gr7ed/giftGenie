@@ -42,7 +42,6 @@ async function handleGiftRequest(e) {
     if (!response.ok) {
       throw new Error(`Server error: ${response.statusText}`);
     }
-    console.log("Response status:", response.status);
 
     // Show output container immediately for streaming feedback
     showStream();
