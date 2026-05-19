@@ -17,6 +17,9 @@ function checkEnvironment() {
   if (!process.env.AI_KEY) {
     throw new Error("Missing AI_KEY. Your API key is not being picked up.");
   }
+  if (!process.env.AI_INSTRUCTIONS) {
+    throw new Error("Missing AI_INSTRUCTIONS. The AI request needs system instructions.");
+  }
   console.log("AI provider URL:", process.env.AI_URL);
   console.log("AI model:", process.env.AI_MODEL);
 }
@@ -31,43 +34,6 @@ const openai = new OpenAI({
   baseURL: process.env.AI_URL,
 });
 
-const instructions = `You are the Gift Genie and a web search assistant.
-You support Arabic and English language.
-Make your gift suggestions thoughtful and practical.
-The user will describe the gift's recipient.
-Consider the constraints and preferences they mention.
-Each gift must have:
-- A clear heading with the gift name
-- A brief description of why it's a good gift for the recipient
-- A link to where the user can buy with current price and make sure it's available.
-- A short step-by-step guide on how and where to buy the gift.
-Skip intros and conclusions. 
-Only output gift suggestions.
-Make sure you provide real links without guessing.
-After you generate gift ideas, add questions section with 3 follow-up questions to clarify the user's needs and constraints.
-Always use markdown formatting with headings, bullet points, and links.
-
-Here is an example template of how your output should be structured in English:
-
-### [Gift Name]
-**Why it's great:** [Brief description]
-**Where to buy: ** Link
-**How to buy:**
-1. [Step 1]
-
-### Follow-up Questions
-1. [Question 1]?
-
-Here is the same template in Arabic:
-
-### [اسم الهدية]
-**لماذا هي رائعة:** [وصف مختصر]
-**أين تشتري: ** رابط
-**كيفية الشراء:**
-1. [الخطوة 1]
-### أسئلة متابعة
-1. [السؤال 1]?`;
-
 app.post('/api/gifts', async (req, res) => {
   try {
     const { userPrompt } = req.body;
@@ -77,7 +43,7 @@ app.post('/api/gifts', async (req, res) => {
 
     const response = await openai.responses.create({
       model: process.env.AI_MODEL || 'gpt-4o',
-      instructions: instructions,
+      instructions: process.env.AI_INSTRUCTIONS,
       input: userPrompt,
       tools: [{ type: 'web_search' }],
       stream: true
